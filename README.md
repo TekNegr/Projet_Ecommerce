@@ -1,61 +1,102 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🚀 PS Ecommerce – Guide d’Installation avec Laravel Sail
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Une plateforme e-commerce moderne construite avec **Laravel**, intégrant de l’IA pour la prédiction de statisfaction et un tableau de bord complet pour les vendeurs.  
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 📦 Prérequis
+- **Linux/Ubuntu/WSL**
+- **Docker Desktop** (dernière version) – [Télécharger ici](https://www.docker.com/products/docker-desktop/)
+- **Git**
+- **4 Go RAM minimum** (8 Go recommandé)
+- **10 Go d’espace libre**
+- (Optionnel mais conseillé) **Visual Studio Code**
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 🛠 Installation Pas-à-Pas (Recommandée)
 
-## Learning Laravel
+### 1️⃣ Cloner le projet et préparer le fichier `.env`
+```bash
+git clone https://github.com/TekNegr/Projet_Ecommerce.git
+cd Projet_Ecommerce
+cp .env.example .env
+```
+⚠️ **Attention** : Ceci doit **ABSOLUMENT** être executer dans un terminal Linux pour que ça fonctionne et non un Terminal Powershell 
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### 2️⃣ Lancer l’environnement avec Sail
+```bash
+./vendor/bin/sail up -d
+```
+💡 **Astuce** : Toujours lancer **Docker Desktop** avant cette commande.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+### 3️⃣ Ouvrir un Shell Sail
+```bash
+./vendor/bin/sail shell
+```
+Toutes les commandes suivantes seront **tapées à l’intérieur** de ce shell.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+### 4️⃣ Installer les dépendances PHP
+```bash
+composer install
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+### 5️⃣ Générer la clé de l’application
+```bash
+php artisan key:generate
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+### 6️⃣ Migrer et **remplir** la base de données
+```bash
+php artisan migrate --seed
+```
+✅ Cette commande crée la base et **insère les données de test**.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+### 7️⃣ Installer les dépendances front-end
+```bash
+npm install
+npm run dev
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+### 8️⃣ Quitter le Shell Sail
+```bash
+exit
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+## 🔑 Commandes Sail Utiles
+```bash
+./vendor/bin/sail up -d      # Démarrer l’application
+./vendor/bin/sail down       # Arrêter l’application
+./vendor/bin/sail shell      # Ouvrir un terminal dans le conteneur
+```
+
+---
+
+## 💡 Dépannage rapide
+- **Vider le cache Laravel :**
+```bash
+./vendor/bin/sail artisan cache:clear
+./vendor/bin/sail artisan config:clear
+./vendor/bin/sail artisan route:clear
+./vendor/bin/sail artisan view:clear
+```
+- **Relancer le front si bloqué :**
+```bash
+npm run dev
+```
