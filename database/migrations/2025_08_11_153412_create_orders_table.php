@@ -19,6 +19,7 @@ return new class extends Migration
             $table->enum('status', ['pending', 'processing', 'shipped', 'delivered', 'cancelled'])->default('pending');
             $table->json('shipping_address')->nullable();
             $table->text('notes')->nullable();
+            $table->json('items')->nullable();
             $table->timestamps();
             
             $table->index(['user_id', 'status']);

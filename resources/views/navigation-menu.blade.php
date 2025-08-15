@@ -105,9 +105,15 @@
                                 {{ __('Profile') }}
                             </x-dropdown-link>
 
-                            @if(auth()->user()->hasRole('seller') or auth()->user()->hasRole('admin'))
+                            @if(auth()->user()->hasRole('seller'))
                                 <x-dropdown-link href="{{ route('seller.products.index') }}">
                                     {{ __('Products') }}
+                                </x-dropdown-link>
+                            @endif
+
+                            @if(auth()->user()->hasRole('admin'))
+                                <x-dropdown-link href="{{ route('admin.products.index') }}">
+                                    {{ __('Admin Products') }}
                                 </x-dropdown-link>
                             @endif
 

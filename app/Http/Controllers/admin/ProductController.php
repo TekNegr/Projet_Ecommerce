@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Seller;
+namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -14,13 +14,14 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $seller = Auth::user();
+        $admin = Auth::user();
 
-        $products = $seller->products()
-            ->latest()
+        // Get all available products with seller information
+        $products = Product::with('seller')
+            ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('seller.products.index', compact('products'));
+        return view('admin.products.index', compact('products'));
     }
 
     /**
@@ -28,7 +29,7 @@ class ProductController extends Controller
      */
     public function create()
     {
-        return view('seller.products.create');
+        return view('admin.products.create');
     }
 
     /**
@@ -47,7 +48,7 @@ class ProductController extends Controller
             'status' => 'required|in:active,inactive',
         ]);
 
-        $seller = Auth::user();
+        $admin = Auth::user();
 
         // Handle image uploads if any
         if ($request->hasFile('images')) {
@@ -59,11 +60,11 @@ class ProductController extends Controller
             $validated['images'] = $imagePaths;
         }
 
-        $validated['user_id'] = $seller->id;
+        $validated['user_id'] = $admin->id;
 
         Product::create($validated);
 
-        return redirect()->route('seller.products.index')->with('success', 'Product created successfully.');
+        return redirect()->route('admin.products.index')->with('success', 'Product created successfully.');
     }
 
     /**
@@ -75,7 +76,7 @@ class ProductController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        return view('seller.products.edit', compact('product'));
+        return view('admin.products.edit', compact('product'));
     }
 
     /**
@@ -110,14 +111,17 @@ class ProductController extends Controller
 
         $product->update($validated);
 
-        return redirect()->route('seller.products.index')->with('success', 'Product updated successfully.');
+        return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
     }
 
+    /**
+     * Remove the specified product from storage.
+     */
     public function destroy(Product $product)
     {
         // Admin can delete any product
         $product->delete();
 
-        return redirect()->route('seller.products.index')->with('success', 'Product deleted successfully.');
+        return redirect()->route('admin.products.index')->with('success', 'Product deleted successfully.');
     }
 }

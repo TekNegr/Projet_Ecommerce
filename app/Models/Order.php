@@ -20,6 +20,7 @@ class Order extends Model
         'status',
         'shipping_address',
         'notes',
+        'items',
     ];
 
     /**
@@ -30,6 +31,7 @@ class Order extends Model
     protected $casts = [
         'total_amount' => 'decimal:2',
         'shipping_address' => 'array',
+        'items' => 'array',
     ];
 
     /**
