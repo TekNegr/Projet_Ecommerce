@@ -28,8 +28,11 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        $this->authorize('view', $order);
-        
+        // Check if the user can view this order
+        if ($order->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access to this order.');
+        }
+
         // Load product details for items
         $productIds = collect($order->items)->pluck('product_id');
         $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
@@ -131,7 +134,10 @@ class OrderController extends Controller
      */
     public function cancel(Order $order)
     {
-        $this->authorize('cancel', $order);
+        // Check if the user can cancel this order
+        if ($order->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access to cancel this order.');
+        }
         
         if ($order->status === 'pending') {
             $order->update(['status' => 'cancelled']);

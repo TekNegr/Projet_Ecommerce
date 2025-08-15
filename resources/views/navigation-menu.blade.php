@@ -16,8 +16,9 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
                     <x-nav-link href="{{ route('products.index') }}" :active="request()->routeIs('products.index')">
-                        {{ __('Products') }}
+                        {{ __('Browse') }}
                     </x-nav-link>
+                    
                 </div>
             </div>
 
@@ -104,10 +105,15 @@
                             <x-dropdown-link href="{{ route('profile.show') }}">
                                 {{ __('Profile') }}
                             </x-dropdown-link>
-
+                            <x-dropdown-link href="{{ route('cart.index') }}" :active="request()->routeIs('cart.*')">
+                                {{ __('Cart') }}
+                            </x-dropdown-link>
+                            <x-dropdown-link href="{{ route('orders.index') }}" :active="request()->routeIs('orders.*')">
+                                {{ __('Orders') }}
+                            </x-dropdown-link>
                             @if(auth()->user()->hasRole('seller'))
                                 <x-dropdown-link href="{{ route('seller.products.index') }}">
-                                    {{ __('Products') }}
+                                    {{ __('My Products') }}
                                 </x-dropdown-link>
                             @endif
 
@@ -159,6 +165,12 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('products.index') }}" :active="request()->routeIs('products.index')">
                 {{ __('Products') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link href="{{ route('cart.index') }}" :active="request()->routeIs('cart.*')">
+                {{ __('Cart') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link href="{{ route('orders.index') }}" :active="request()->routeIs('orders.*')">
+                {{ __('Orders') }}
             </x-responsive-nav-link>
         </div>
 

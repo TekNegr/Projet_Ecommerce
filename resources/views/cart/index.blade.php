@@ -81,14 +81,14 @@
                         <div class="mt-6 flex justify-between items-center">
                             <form action="{{ route('cart.clear') }}" method="POST">
                                 @csrf
-                                <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                                <button type="submit" class="bg-red-500 px-4 py-2 rounded hover:bg-red-600">
                                     Clear Cart
                                 </button>
                             </form>
                             
                             <div class="text-right">
                                 <p class="text-lg font-semibold">Total: ${{ number_format($total, 2) }}</p>
-                                <a href="{{ route('orders.create') }}" class="mt-2 inline-block bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600">
+                                <a href="{{ route('orders.create') }}" class="mt-2 inline-block bg-green-500 px-6 py-2 rounded hover:bg-green-600">
                                     Proceed to Checkout
                                 </a>
                             </div>
