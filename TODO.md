@@ -115,7 +115,7 @@
 1. **High**: Database quantity updates
 2. **Medium**: Basic review system
 3. **Medium**: Satisfaction graph visualization
-4. **Low**: AI prediction features
+4. **High**: AI prediction features
 5. **Very Low**: Language chatbot
 6. **Optional**: Simple email notifications
 7. **Optional**: Basic coupon system
