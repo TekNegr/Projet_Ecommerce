@@ -60,6 +60,11 @@
                 <x-input id="state" class="block mt-1 w-full" type="text" name="state" :value="old('state')" />
             </div>
 
+            <div class="mt-4">
+                <x-label for="country" value="{{ __('Country') }}" />
+                <x-input id="country" class="block mt-1 w-full" type="text" name="country" :value="old('country')" />
+            </div>
+
             @if (Laravel\Jetstream\Jetstream::hasTermsAndPrivacyPolicyFeature())
                 <div class="mt-4">
                     <x-label for="terms">

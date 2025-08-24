@@ -29,12 +29,15 @@ Route::middleware([
     });
 
     Route::middleware(['auth', 'check.role:admin'])->group(function () {
+        //Product management for admin
         Route::get('/admin/products', [\App\Http\Controllers\Admin\ProductController::class, 'index'])->name('admin.products.index');
         Route::get('/admin/products/create', [\App\Http\Controllers\Admin\ProductController::class, 'create'])->name('admin.products.create');
         Route::post('/admin/products', [\App\Http\Controllers\Admin\ProductController::class, 'store'])->name('admin.products.store');
         Route::get('/admin/products/{product}/edit', [\App\Http\Controllers\Admin\ProductController::class, 'edit'])->name('admin.products.edit');
         Route::put('/admin/products/{product}', [\App\Http\Controllers\Admin\ProductController::class, 'update'])->name('admin.products.update');
         Route::delete('/admin/products/{product}', [\App\Http\Controllers\Admin\ProductController::class, 'destroy'])->name('admin.products.destroy');
+        // AI Dashboard routes
+        Route::get('/admin/ai-dashboard', [AIController::class, 'dashboard'])->name('admin.ai-dashboard');
     });
 
 });

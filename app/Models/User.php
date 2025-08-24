@@ -34,6 +34,7 @@ class User extends Authenticatable
         'zip_code',
         'city',
         'state',
+        'country',
     ];
 
     /**

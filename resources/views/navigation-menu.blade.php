@@ -121,6 +121,9 @@
                                 <x-dropdown-link href="{{ route('admin.products.index') }}">
                                     {{ __('Admin Products') }}
                                 </x-dropdown-link>
+                                <x-dropdown-link href="{{ route('admin.ai-dashboard') }}">
+                                    {{ __('AI Dashboard') }}
+                                </x-dropdown-link>
                             @endif
 
                             @if (Laravel\Jetstream\Jetstream::hasApiFeatures())
