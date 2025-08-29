@@ -4,9 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\AddressValidationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -16,7 +20,6 @@ class OrderController extends Controller
     public function index()
     {
         $orders = Order::where('user_id', Auth::id())
-            ->with(['seller'])
             ->latest()
             ->paginate(10);
             
@@ -33,11 +36,10 @@ class OrderController extends Controller
             abort(403, 'Unauthorized access to this order.');
         }
 
-        // Load product details for items
-        $productIds = collect($order->items)->pluck('product_id');
-        $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+        // Load order with items
+        $order->load(['customer']);
         
-        return view('orders.show', compact('order', 'products'));
+        return view('orders.show', compact('order'));
     }
 
     /**
@@ -48,56 +50,125 @@ class OrderController extends Controller
         $cart = Session::get('cart', []);
         
         if (empty($cart)) {
-            return redirect()->route('cart.index')->with('error', 'Your cart is empty!');
+            return redirect()->route('cart.index')->with('flash.banner', 'Your cart is empty!')->with('flash.bannerStyle', 'danger');
         }
         
         $request->validate([
-            'shipping_address' => 'required|array',
-            'shipping_address.name' => 'required|string|max:255',
-            'shipping_address.address' => 'required|string|max:255',
-            'shipping_address.city' => 'required|string|max:255',
-            'shipping_address.postal_code' => 'required|string|max:20',
+            'address_option' => 'required|in:user_address,new_address',
+            'shipping_address' => 'sometimes|array',
+            'shipping_address.name' => 'required_if:address_option,new_address|string|max:255',
+            'shipping_address.address' => 'required_if:address_option,new_address|string|max:255',
+            'shipping_address.city' => 'required_if:address_option,new_address|string|max:255',
+            'shipping_address.postal_code' => 'required_if:address_option,new_address|string|max:20',
+            'shipping_address.state' => 'required_if:address_option,new_address|string|max:255',
+            'shipping_address.country' => 'required_if:address_option,new_address|string|max:255',
             'notes' => 'nullable|string|max:1000',
         ]);
         
+        // Prepare shipping address based on selection
+        $shippingAddress = [];
+        
+        if ($request->address_option === 'user_address') {
+            // Use user's saved address
+            $user = Auth::user();
+            $shippingAddress = [
+                'name' => $user->name,
+                'address' => $user->address(),
+                'city' => $user->city,
+                'postal_code' => $user->zip_code,
+                'state' => $user->state,
+                'country' => $user->country
+            ];
+        } else {
+            // Use new address
+            $shippingAddress = $request->shipping_address;
+        }
+        
         // Get products and calculate totals
         $products = Product::whereIn('id', array_keys($cart))->get()->keyBy('id');
-        $items = [];
         $totalAmount = 0;
         
+        // Prepare items array
+        $items = [];
+        
+        // Collect unique seller IDs
+        $sellerIds = [];
         foreach ($cart as $productId => $quantity) {
             $product = $products[$productId];
             $subtotal = $product->price * $quantity;
-            
+            $totalAmount += $subtotal;
+
             $items[] = [
                 'product_id' => $productId,
-                'product_name' => $product->name,
-                'price' => $product->price,
                 'quantity' => $quantity,
-                'subtotal' => $subtotal
+                'price' => $product->price,
+                'seller_id' => $product->user_id, // Store seller ID with item
             ];
             
-            $totalAmount += $subtotal;
+            // Collect unique seller IDs
+            if (!in_array($product->user_id, $sellerIds)) {
+                $sellerIds[] = $product->user_id;
+            }
         }
         
-        // Group items by seller (assuming all products have same seller for now)
-        $sellerId = $products->first()->user_id;
-        
-        // Create order
-        $order = Order::create([
-            'user_id' => Auth::id(),
-            'seller_id' => $sellerId,
-            'total_amount' => $totalAmount,
-            'status' => 'pending',
-            'shipping_address' => $request->shipping_address,
-            'notes' => $request->notes,
-            'items' => $items,
-        ]);
+        // Use database transaction to ensure data consistency
+        try {
+            DB::beginTransaction();
+            
+            Log::info('Starting order creation process', ['cart' => $cart, 'products_count' => count($products)]);
+            
+            // Check stock availability and update stock quantity
+            foreach ($cart as $productId => $quantity) {
+                $product = $products[$productId];
+                Log::info('Checking stock for product', ['product_id' => $productId, 'stock' => $product->stock_quantity, 'requested' => $quantity]);
+                
+                if ($product->stock_quantity < $quantity) {
+                    Log::warning('Insufficient stock', ['product_id' => $productId, 'stock' => $product->stock_quantity, 'requested' => $quantity]);
+                    DB::rollBack();
+                    return redirect()->route('cart.index')->with('flash.banner', 'Insufficient stock for ' . $product->name)->with('flash.bannerStyle', 'danger');
+                }
+            }
+
+            Log::info('Stock check passed, updating stock quantities');
+            foreach ($cart as $productId => $quantity) {
+                $product = $products[$productId];
+                $product->stock_quantity -= $quantity; // Update stock quantity
+                $product->save(); // Save changes to the product
+                Log::info('Updated stock for product', ['product_id' => $productId, 'new_stock' => $product->stock_quantity]);
+            }
+            
+            Log::info('Creating order with items', ['items_count' => count($items), 'total_amount' => $totalAmount]);
+            // Create order
+            $order = Order::create([
+                'seller_ids' => $sellerIds, // Store seller IDs in the order
+                'user_id' => Auth::id(),
+                'total_amount' => $totalAmount,
+                'status' => 'pending',
+                'shipping_address' => $shippingAddress,
+                'notes' => $request->notes,
+                'items' => $items, // Store items directly (including seller IDs)
+            ]);
+            
+            Log::info('Order created successfully', ['order_id' => $order->id]);
+            
+            // Send notification to Customer
+            Notification::createForCustomerOrderPlaced($order);
+            
+            // Notify sellers about the new order
+            $order->notifySellersNewOrder();
+            
+            DB::commit();
+            Log::info('Order transaction committed successfully');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Order creation failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return redirect()->route('cart.index')->with('flash.banner', 'An error occurred while placing your order. Please try again.')->with('flash.bannerStyle', 'danger');
+        }
         
         // Clear cart
         Session::forget('cart');
         
-        return redirect()->route('orders.show', $order)->with('success', 'Order placed successfully!');
+        return redirect()->route('orders.show', $order)->with('flash.banner', 'Order placed successfully!')->with('flash.bannerStyle', 'success');
     }
 
     /**
@@ -108,7 +179,7 @@ class OrderController extends Controller
         $cart = Session::get('cart', []);
         
         if (empty($cart)) {
-            return redirect()->route('cart.index')->with('error', 'Your cart is empty!');
+            return redirect()->route('cart.index')->with('flash.banner', 'Your cart is empty!')->with('flash.bannerStyle', 'danger');
         }
         
         $products = Product::whereIn('id', array_keys($cart))->get();
@@ -140,10 +211,47 @@ class OrderController extends Controller
         }
         
         if ($order->status === 'pending') {
-            $order->update(['status' => 'cancelled']);
-            return redirect()->back()->with('success', 'Order cancelled successfully!');
+            // Use database transaction to ensure data consistency
+            try {
+                DB::beginTransaction();
+                Log::info('Starting order cancellation', ['order_id' => $order->id]);
+                
+                // Restore stock quantities for all items in the order
+                foreach ($order->items as $item) {
+                    $product = Product::find($item['product_id']);
+                    if ($product) {
+                        Log::info('Restoring stock for product', [
+                            'product_id' => $item['product_id'],
+                            'quantity_restored' => $item['quantity'],
+                            'old_stock' => $product->stock_quantity,
+                            'new_stock' => $product->stock_quantity + $item['quantity']
+                        ]);
+                        $product->stock_quantity += $item['quantity'];
+                        $product->save();
+                    } else {
+                        Log::warning('Product not found during cancellation', ['product_id' => $item['product_id']]);
+                    }
+                }
+                
+                $order->update(['status' => 'cancelled']);
+                Log::info('Order cancelled successfully', ['order_id' => $order->id]);
+                
+                // Notify customer about cancellation
+                $order->notifyCustomerStatusChange('cancelled');
+                
+                // Notify sellers about order cancellation
+                $order->notifySellersOrderCancellation();
+                
+                DB::commit();
+                return redirect()->back()->with('flash.banner', 'Order cancelled successfully! Stock quantities have been restored.')->with('flash.bannerStyle', 'success');
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Order cancellation failed', ['order_id' => $order->id, 'error' => $e->getMessage()]);
+                return redirect()->back()->with('flash.banner', 'An error occurred while cancelling your order. Please try again.')->with('flash.bannerStyle', 'danger');
+            }
         }
         
-        return redirect()->back()->with('error', 'Cannot cancel this order!');
+        Log::warning('Cannot cancel order - not in pending status', ['order_id' => $order->id, 'status' => $order->status]);
+        return redirect()->back()->with('flash.banner', 'Cannot cancel this order!')->with('flash.bannerStyle', 'danger');
     }
 }

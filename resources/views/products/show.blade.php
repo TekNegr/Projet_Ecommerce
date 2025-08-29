@@ -34,8 +34,8 @@
                                 <h3 class="text-lg font-semibold text-gray-700 mb-2">Details</h3>
                                 <ul class="text-gray-600 space-y-1">
                                     <li><strong>Category:</strong> {{ $product->category ?? 'N/A' }}</li>
-                                    <li><strong>Stock:</strong> {{ $product->stock ?? 0 }} units available</li>
-                                    <li><strong>Seller:</strong> {{ $product->user->name ?? 'Unknown' }}</li>
+                                    <li><strong>Stock:</strong> {{ $product->stock_quantity ?? 0 }} units available</li>
+                                    <li><strong>Seller:</strong> {{ $product->seller->name ?? 'Unknown' }}</li>
                                 </ul>
                             </div>
 
@@ -51,7 +51,7 @@
                                            id="quantity" 
                                            value="1" 
                                            min="1" 
-                                           max="{{ $product->stock ?? 100 }}"
+                                           max="{{ $product->stock_quantity }}"
                                            class="w-20 border-gray-300 rounded-md shadow-sm">
                                 </div>
 

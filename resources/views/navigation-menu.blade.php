@@ -18,6 +18,9 @@
                     <x-nav-link href="{{ route('products.index') }}" :active="request()->routeIs('products.index')">
                         {{ __('Browse') }}
                     </x-nav-link>
+                    <x-nav-link href="{{ route('notifications.index') }}" :active="request()->routeIs('notifications.index')">
+                        {{ __('Notifications') }}
+                    </x-nav-link>
                     
                 </div>
             </div>
@@ -108,16 +111,29 @@
                             <x-dropdown-link href="{{ route('cart.index') }}" :active="request()->routeIs('cart.*')">
                                 {{ __('Cart') }}
                             </x-dropdown-link>
+
                             <x-dropdown-link href="{{ route('orders.index') }}" :active="request()->routeIs('orders.*')">
                                 {{ __('Orders') }}
                             </x-dropdown-link>
+
+                            <div class="border-t border-gray-200"></div>
+
                             @if(auth()->user()->hasRole('seller'))
+                                <div class="block px-4 py-2 text-xs text-gray-400">
+                                    {{ __('Seller Management') }}
+                                </div>
+                                <x-dropdown-link href="{{ route('seller.orders') }}">
+                                    {{ __('Manage Orders') }}
+                                </x-dropdown-link>
                                 <x-dropdown-link href="{{ route('seller.products.index') }}">
                                     {{ __('My Products') }}
                                 </x-dropdown-link>
                             @endif
 
                             @if(auth()->user()->hasRole('admin'))
+                                <div class="block px-4 py-2 text-xs text-gray-400">
+                                    {{ __('Admin Management') }}
+                                </div>
                                 <x-dropdown-link href="{{ route('admin.products.index') }}">
                                     {{ __('Admin Products') }}
                                 </x-dropdown-link>

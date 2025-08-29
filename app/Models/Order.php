@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
@@ -15,12 +14,13 @@ class Order extends Model
      */
     protected $fillable = [
         'user_id',
-        'seller_id',
+        'seller_ids',
         'total_amount',
         'status',
         'shipping_address',
         'notes',
         'items',
+        'items_shipped',
     ];
 
     /**
@@ -31,7 +31,9 @@ class Order extends Model
     protected $casts = [
         'total_amount' => 'decimal:2',
         'shipping_address' => 'array',
+        'seller_ids' => 'array',
         'items' => 'array',
+        'items_shipped' => 'array',
     ];
 
     /**
@@ -43,27 +45,19 @@ class Order extends Model
     }
 
     /**
-     * Get the seller that owns the order.
+     * Get the reviews for the order.
      */
-    public function seller(): BelongsTo
+    public function reviews()
     {
-        return $this->belongsTo(User::class, 'seller_id');
+        return $this->hasMany(Review::class);
     }
 
     /**
-     * Get the order items for the order.
+     * Check if the current user has reviewed this order.
      */
-    public function items(): HasMany
+    public function hasUserReviewed()
     {
-        return $this->hasMany(OrderItem::class);
-    }
-
-    /**
-     * Scope a query to only include orders for a specific seller.
-     */
-    public function scopeForSeller($query, $sellerId)
-    {
-        return $query->where('seller_id', $sellerId);
+        return $this->reviews()->where('user_id', auth()->id())->exists();
     }
 
     /**
@@ -75,10 +69,95 @@ class Order extends Model
     }
 
     /**
-     * Check if order is completed.
+     * Check if order is processing.
      */
-    public function isCompleted(): bool
+    public function isProcessing(): bool
     {
-        return $this->status === 'completed';
+        return $this->status === 'processing';
+    }
+
+    /**
+     * Check if order is delivered.
+     */
+    public function isDelivered(): bool
+    {
+        return $this->status === 'delivered';
+    }
+
+    /**
+     * Check if order is cancelled.
+     */
+    public function isCancelled(): bool
+    {
+        return $this->status === 'cancelled';
+    }
+
+    /**
+     * Get the total number of items in the order.
+     */
+    public function getTotalItemsAttribute(): int
+    {
+        if (empty($this->items)) {
+            return 0;
+        }
+
+        return array_reduce($this->items, function ($total, $item) {
+            return $total + $item['quantity'];
+        }, 0);
+    }
+
+    /**
+     * Get product IDs from order items.
+     */
+    public function getProductIdsAttribute(): array
+    {
+        if (empty($this->items)) {
+            return [];
+        }
+
+        return array_map(function ($item) {
+            return $item['product_id'];
+        }, $this->items);
+    }
+
+    /**
+     * Notify all sellers about a new order
+     */
+    public function notifySellersNewOrder()
+    {
+        if (empty($this->seller_ids)) {
+            return;
+        }
+
+        foreach ($this->seller_ids as $sellerId) {
+            \App\Models\Notification::createForSellerNewOrder($sellerId, $this);
+        }
+    }
+
+    /**
+     * Notify customer about order status change
+     */
+    public function notifyCustomerStatusChange($newStatus)
+    {
+        \App\Models\Notification::createForOrderStatusChange($this->user_id, $this, $newStatus);
+        
+        // Notify customer for review request if the order is delivered
+        if ($newStatus === 'delivered') {
+            \App\Models\Notification::createForReviewRequest($this->user_id, $this);
+        }
+    }
+
+    /**
+     * Notify sellers about order cancellation by customer
+     */
+    public function notifySellersOrderCancellation()
+    {
+        if (empty($this->seller_ids)) {
+            return;
+        }
+
+        foreach ($this->seller_ids as $sellerId) {
+            \App\Models\Notification::createForSellerOrderCancellation($sellerId, $this);
+        }
     }
 }

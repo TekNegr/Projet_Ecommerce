@@ -18,7 +18,6 @@
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                                     @if($order->status === 'pending') bg-yellow-100 text-yellow-800
                                     @elseif($order->status === 'processing') bg-blue-100 text-blue-800
-                                    @elseif($order->status === 'shipped') bg-purple-100 text-purple-800
                                     @elseif($order->status === 'delivered') bg-green-100 text-green-800
                                     @else bg-red-100 text-red-800
                                     @endif">
@@ -56,24 +55,35 @@
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
-                                @foreach($order->items as $item)
+                                @if($order->items && count($order->items) > 0)
+                                    @foreach($order->items as $item)
+                                        @php
+                                            $product = \App\Models\Product::find($item['product_id']);
+                                        @endphp
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm font-medium text-gray-900">
+                                                    {{ $product ? $product->name : 'Product #' . $item['product_id'] }}
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                ${{ number_format($item['price'], 2) }}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                {{ $item['quantity'] }}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                ${{ number_format($item['price'] * $item['quantity'], 2) }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @else
                                     <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-medium text-gray-900">
-                                                {{ $item['product_name'] }}
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            ${{ number_format($item['price'], 2) }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ $item['quantity'] }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            ${{ number_format($item['subtotal'], 2) }}
+                                        <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                                            No items found in this order.
                                         </td>
                                     </tr>
-                                @endforeach
+                                @endif
                             </tbody>
                         </table>
                     </div>
@@ -82,15 +92,23 @@
                         <a href="{{ route('orders.index') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
                             Back to Orders
                         </a>
-                        @if($order->status === 'pending')
-                            <form action="{{ route('orders.cancel', $order) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                                        onclick="return confirm('Are you sure you want to cancel this order?')">
-                                    Cancel Order
-                                </button>
-                            </form>
-                        @endif
+                        <div class="flex space-x-4">
+                            @if($order->status === 'pending')
+                                <form action="{{ route('orders.cancel', $order) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                                            onclick="return confirm('Are you sure you want to cancel this order?')">
+                                        Cancel Order
+                                    </button>
+                                </form>
+                            @endif
+                            
+                            @if($order->isDelivered() && !$order->hasUserReviewed())
+                                <a href="{{ route('reviews.show', $order) }}" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                                    Leave a Review
+                                </a>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>

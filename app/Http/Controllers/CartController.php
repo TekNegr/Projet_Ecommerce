@@ -43,9 +43,16 @@ class CartController extends Controller
             'quantity' => 'required|integer|min:1'
         ]);
         
+        $product = Product::find($request->product_id);
         $cart = Session::get('cart', []);
         $productId = $request->product_id;
         $quantity = $request->quantity;
+        
+        // Check if requested quantity exceeds available stock
+        $currentCartQuantity = $cart[$productId] ?? 0;
+        if ($currentCartQuantity + $quantity > $product->stock_quantity) {
+            return redirect()->back()->with('flash.banner', 'Cannot add to cart: Insufficient stock available!')->with('flash.bannerStyle', 'danger');
+        }
         
         if (isset($cart[$productId])) {
             $cart[$productId] += $quantity;
@@ -55,7 +62,7 @@ class CartController extends Controller
         
         Session::put('cart', $cart);
         
-        return redirect()->back()->with('success', 'Product added to cart!');
+        return redirect()->back()->with('flash.banner', 'Product added to cart!')->with('flash.bannerStyle', 'success');
     }
 
     /**
@@ -68,9 +75,15 @@ class CartController extends Controller
             'quantity' => 'required|integer|min:0'
         ]);
         
+        $product = Product::find($request->product_id);
         $cart = Session::get('cart', []);
         $productId = $request->product_id;
         $quantity = $request->quantity;
+        
+        // Check if requested quantity exceeds available stock
+        if ($quantity > 0 && $quantity > $product->stock_quantity) {
+            return redirect()->back()->with('error', 'Cannot update cart: Requested quantity exceeds available stock!');
+        }
         
         if ($quantity <= 0) {
             unset($cart[$productId]);
@@ -100,7 +113,7 @@ class CartController extends Controller
             Session::put('cart', $cart);
         }
         
-        return redirect()->back()->with('success', 'Product removed from cart!');
+        return redirect()->back()->with('flash.banner', 'Product removed from cart!')->with('flash.bannerStyle', 'success');
     }
 
     /**
@@ -109,7 +122,7 @@ class CartController extends Controller
     public function clear()
     {
         Session::forget('cart');
-        return redirect()->back()->with('success', 'Cart cleared!');
+        return redirect()->back()->with('flash.banner', 'Cart cleared!')->with('flash.bannerStyle', 'success');
     }
 
     /**

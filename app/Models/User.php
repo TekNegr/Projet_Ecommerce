@@ -78,4 +78,22 @@ class User extends Authenticatable
     {
         return $this->hasMany(Product::class);
     }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    public function address()
+    {
+        return "{$this->zip_code}, {$this->city}, {$this->state}, {$this->country}";
+    }
+
+    /**
+     * Check if user is a seller
+     */
+    public function isSeller()
+    {
+        return $this->hasRole('seller');
+    }
 }

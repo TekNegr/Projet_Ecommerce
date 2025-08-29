@@ -14,16 +14,16 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('seller_id')->constrained('users')->onDelete('cascade');
+            $table->json('seller_ids')->nullable();
             $table->decimal('total_amount', 10, 2);
             $table->enum('status', ['pending', 'processing', 'shipped', 'delivered', 'cancelled'])->default('pending');
             $table->json('shipping_address')->nullable();
             $table->text('notes')->nullable();
             $table->json('items')->nullable();
+            $table->json('items_shipped')->nullable();
             $table->timestamps();
             
             $table->index(['user_id', 'status']);
-            $table->index(['seller_id', 'status']);
         });
     }
 
