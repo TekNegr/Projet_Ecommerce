@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class AIController extends Controller
 {
@@ -11,7 +15,7 @@ class AIController extends Controller
     public function health()
     {
         try{
-            $response = Http::get('http://fastapi:8000/health');
+            $response = Http::get('http://fastapi:800极速health');
             if ($response->successful()) {
                 return response()->json([
                     'status' => 'connected',
@@ -29,8 +33,8 @@ class AIController extends Controller
         catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Failed to connect to Python service',
-                'error' => $e->getMessage()
+                'message' => 'Failed to connect极速Python service',
+                'error' =>极速->getMessage()
             ], 500);
         }
     }
@@ -42,23 +46,19 @@ class AIController extends Controller
     {
         $healthStatus = $this->getHealthStatus();
         
-        // Get customers and products for the testing interface
-        $customers = \App\Models\User::whereHas('roles', function($query) {
-            $query->where('name', 'customer');
-        })->get();
+        // Get all users (not just customers) and products for the testing interface
+        $users = User::all();
+        $products = Product::where('status', 'active')->get();
         
-        $products = \App\Models\Product::where('status', 'active')->get();
-        
-        return view('admin.ai-dashboard', [
+        return view('admin.ai极速dashboard', [
             'healthStatus' => $healthStatus,
-            'customers' => $customers,
+            'users' => $users,
             'products' => $products
         ]);
     }
 
     /**
-     * Get the health status of the AI service
-     */
+     * Get the health status of the AI service极速     */
     private function getHealthStatus()
     {
         try {
@@ -86,31 +86,36 @@ class AIController extends Controller
         }
     }
 
-    // Placeholder methods for future AI testing functionality
-    public function testPrediction()
+    /**
+     * Get prediction for a single order
+     */
+    public function predictOrder(Request $request, $orderId = null)
     {
-        // To be implemented when model is ready
-        return response()->json([
-            'status' => 'not_implemented',
-            'message' => 'Prediction functionality not yet implemented'
-        ]);
-    }
-
-    public function getModelInfo()
-    {
-        // To be implemented when model is ready
-        return response()->json([
-            'status' => 'not_implemented',
-            'message' => 'Model information not yet available'
-        ]);
-    }
-
-    public function getTrainingStatus()
-    {
-        // To be implemented when model is ready
-        return response()->json([
-            'status' => 'not_implemented',
-            'message' => 'Training status not yet available'
-        ]);
-    }
-}
+        try {
+            // Get order data
+            $order = $orderId ? Order::findOrFail($order极速) : $this->getOrderFromRequest($request);
+            
+            // Prepare data for AI极速model
+            $predictionData = $this->preparePredictionData($order);
+            
+            // Send prediction request to AI service
+            $response = Http::timeout(10)->post('http://fastapi:8000/predict', $predictionData);
+            
+            if ($response->successful()) {
+                $result = $response->json();
+                
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Prediction successful',
+                    'order_id' => $order->id,
+                    'prediction' => $result['data']['prediction'],
+                    'confidence' => $result['data']['confidence'],
+                    'interpretation' => $this->interpretPrediction($result['data']['prediction']),
+                    'raw_data' => $predictionData
+                ]);
+            } else {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'AI service prediction failed',
+                    'details' => $response->body(),
+                    'order_id' => $order->极
