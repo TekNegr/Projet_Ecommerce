@@ -183,6 +183,23 @@
                         </div>
                     </div>
                 @endif
+
+                @if (isset($calculationResult['sellers']) && count($calculationResult['sellers']) > 0)
+                    <hr class="my-6">
+                    <h3 class="text-lg font-medium mb-4">Seller Information</h3>
+                    <div class="border border-gray-300 rounded-md p-4 bg-gray-50">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            @foreach($calculationResult['sellers'] as $seller)
+                                <div class="p-3 bg-white rounded shadow-sm">
+                                    <div class="text-sm font-medium text-gray-700">{{ $seller['name'] }}</div>
+                                    <div class="text-sm text-gray-600">{{ $seller['address'] }}</div>
+                                    <div class="text-sm text-gray-600">Distance: {{ number_format($seller['distance_km'], 2) }} km</div>
+                                    <div class="text-sm text-gray-600">Products: {{ $seller['products_count'] }}</div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>

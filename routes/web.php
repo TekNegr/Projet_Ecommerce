@@ -84,6 +84,6 @@ Route::middleware([
     Route::get('/ai/health', [AIController::class, 'health']);
     Route::post('/ai/predict/{orderId?}', [AIController::class, 'predictOrder'])->name('ai.predictOrder');
     Route::post('/ai/batch-predict', [AIController::class, 'batchPredict'])->name('ai.batchPredict');
+    Route::post('/ai/calculate-pseudo-order', [AIController::class, 'calculatePseudoOrder'])->name('ai.calculatePseudoOrder');
     Route::get('/ai/model-info', [AIController::class, 'getModelInfo'])->name('ai.getModelInfo');
     Route::get('/ai/training-status', [AIController::class, 'getTrainingStatus'])->name('ai.getTrainingStatus');
-    Route::post('/ai/calculate-pseudo-order', [AIController::class, 'calculatePseudoOrder'])->name('ai.calculatePseudoOrder');

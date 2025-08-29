@@ -23,3 +23,10 @@
 - [ ] Test order creation
 - [ ] Test order display
 - [ ] Test seller functionality
+
+## Phase 6: AI Service Enhancements
+- [ ] Add reasoning of why an order would be dissatisfying or not (if possible)
+- [ ] Add sorting products via satisfaction
+- [ ] Add in review a placeholder of predicted satisfaction
+- [ ] Add coupons in case of dissatisfaction
+- [ ] Document these changes
