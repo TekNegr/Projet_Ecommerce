@@ -5,7 +5,7 @@
     <!-- Product Image -->
     <div class="aspect-w-16 aspect-h-9">
         @if($product->images)
-            <img src="{{ asset('storage/' . $product->image) }}" 
+            <img src="{{ Storage::url($product->images[0]) }}" 
                  alt="{{ $product->name }}" 
                  class="w-full h-48 object-cover">
         @else

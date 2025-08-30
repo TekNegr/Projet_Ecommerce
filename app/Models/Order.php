@@ -21,6 +21,8 @@ class Order extends Model
         'notes',
         'items',
         'items_shipped',
+        'coupon_id',
+        'discount_amount',
     ];
 
     /**
@@ -30,6 +32,7 @@ class Order extends Model
      */
     protected $casts = [
         'total_amount' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
         'shipping_address' => 'array',
         'seller_ids' => 'array',
         'items' => 'array',
@@ -42,6 +45,14 @@ class Order extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Get the coupon applied to the order.
+     */
+    public function coupon(): BelongsTo
+    {
+        return $this->belongsTo(Coupon::class);
     }
 
     /**

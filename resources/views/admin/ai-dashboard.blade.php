@@ -34,7 +34,7 @@
 
                 <form method="POST" action="{{ route('ai.calculatePseudoOrder') }}">
                     @csrf
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <!-- User Selection -->
                         <div>
                             <label for="customer_id" class="block text-sm font-medium text-gray-700 mb-2">Select User</label>
@@ -67,6 +67,21 @@
                                 @endforeach
                             </div>
                             <p class="text-sm text-gray-500 mt-1">Select products using checkboxes</p>
+                        </div>
+                        
+                        <!-- Freight Cost per Km -->
+                        <div>
+                            <label for="freight_cost_per_km" class="block text-sm font-medium text-gray-700 mb-2">Freight Cost per Km ($)</label>
+                            <input type="number" 
+                                   id="freight_cost_per_km" 
+                                   name="freight_cost_per_km" 
+                                   value="{{ old('freight_cost_per_km', '0.1') }}" 
+                                   step="0.01" 
+                                   min="0.01" 
+                                   max="10.00" 
+                                   class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                   placeholder="0.10">
+                            <p class="text-sm text-gray-500 mt-1">Cost per kilometer in dollars</p>
                         </div>
                         
                         <!-- Calculate Button -->

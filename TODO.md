@@ -20,9 +20,9 @@
 - [x] Simplify seller order management
 
 ## Phase 5: Testing
-- [ ] Test order creation
-- [ ] Test order display
-- [ ] Test seller functionality
+- [x] Test order creation
+- [x] Test order display
+- [x] Test seller functionality
 
 ## Phase 6: AI Service Enhancements
 - [ ] Add reasoning of why an order would be dissatisfying or not (if possible)

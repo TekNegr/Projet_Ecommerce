@@ -25,6 +25,14 @@
                                 </span>
                             </p>
                             <p><strong>Total:</strong> ${{ number_format($order->total_amount, 2) }}</p>
+                            
+                            @if($order->discount_amount > 0)
+                                <p><strong>Original Total:</strong> ${{ number_format($order->total_amount + $order->discount_amount, 2) }}</p>
+                                <p><strong>Discount:</strong> -${{ number_format($order->discount_amount, 2) }}</p>
+                                @if($order->coupon)
+                                    <p><strong>Coupon:</strong> {{ $order->coupon->code }}</p>
+                                @endif
+                            @endif
                         </div>
                         
                         <div>

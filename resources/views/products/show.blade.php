@@ -12,7 +12,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <!-- Product Image -->
                         <div>
-                            <img src="{{ $product->image_url ?? 'https://via.placeholder.com/400x300' }}" 
+                            <img src="{{ Storage::url($product->image_url ?? 'https://via.placeholder.com/400x300') }}" 
                                  alt="{{ $product->name }}" 
                                  class="w-full h-64 object-cover rounded-lg">
                         </div>

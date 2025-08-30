@@ -142,11 +142,15 @@ class AIController extends Controller
             $request->validate([
                 'customer_id' => 'required|exists:users,id',
                 'product_ids' => 'required|array',
-                'product_ids.*' => 'exists:products,id'
+                'product_ids.*' => 'exists:products,id',
+                'freight_cost_per_km' => 'nullable|numeric|min:0.01|max:10.00'
             ]);
 
             $customer = User::findOrFail($request->customer_id);
             $products = Product::whereIn('id', $request->product_ids)->get();
+            
+            // Get freight cost per km from request or use default
+            $freightCostPerKm = $request->input('freight_cost_per_km', 0.1);
 
             if ($products->isEmpty()) {
                 return back()->withErrors(['message' => 'No valid products selected']);
@@ -172,9 +176,9 @@ class AIController extends Controller
             $mockOrder->total_amount = $totalAmount;
             $mockOrder->total_items = $totalItems;
 
-            // Use TravelEstimatorService to calculate freight
+            // Use TravelEstimatorService to calculate freight with custom cost per km
             $travelEstimator = new TravelEstimatorService();
-            $freightData = $travelEstimator->estimateTravel($mockOrder);
+            $freightData = $travelEstimator->estimateTravel($mockOrder, $freightCostPerKm);
 
             // Convert to appropriate units for AI prediction and round them
             $totalDistanceKm = round($freightData['total_distance_meters'] / 1000, 2);

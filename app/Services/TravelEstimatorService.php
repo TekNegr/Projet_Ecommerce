@@ -15,7 +15,7 @@ class TravelEstimatorService
      * 4. Create travel route: furthest seller -> other sellers -> customer
      * 5. Return distance, time, and estimated freight
      */
-    public function estimateTravel($order)
+    public function estimateTravel($order, $freightCostPerKm = 0.01)
     {
         Log::info("🚚 Starting travel estimation for order", [
             'customer_address' => $order->customer->address(),
@@ -111,8 +111,7 @@ class TravelEstimatorService
 
         // Calculate the complete travel route using coordinates
         $travelResult = $this->calculateTravelRouteWithCoordinates($customerCoords, $sellersWithDistances);
-        
-        $freightCostPerKm = 1.0; // Example cost per kilometer
+
         $totalFreightCost = ($travelResult['total_distance_meters'] / 1000) * $freightCostPerKm;
         
         Log::info("✅ Travel estimation completed successfully", [

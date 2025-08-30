@@ -87,3 +87,17 @@ Route::middleware([
     Route::post('/ai/calculate-pseudo-order', [AIController::class, 'calculatePseudoOrder'])->name('ai.calculatePseudoOrder');
     Route::get('/ai/model-info', [AIController::class, 'getModelInfo'])->name('ai.getModelInfo');
     Route::get('/ai/training-status', [AIController::class, 'getTrainingStatus'])->name('ai.getTrainingStatus');
+
+    // Coupon Routes
+    Route::prefix('coupons')->group(function () {
+        Route::post('/validate', [\App\Http\Controllers\CouponController::class, 'validateCoupon'])->name('coupons.validate');
+        Route::get('/my-coupons', [\App\Http\Controllers\CouponController::class, 'getUserCoupons'])->name('coupons.my-coupons');
+        
+        // Admin coupon management routes
+        Route::middleware(['auth', 'check.role:admin'])->group(function () {
+            Route::get('/', [\App\Http\Controllers\CouponController::class, 'index'])->name('coupons.index');
+            Route::post('/', [\App\Http\Controllers\CouponController::class, 'store'])->name('coupons.store');
+            Route::delete('/{coupon}', [\App\Http\Controllers\CouponController::class, 'destroy'])->name('coupons.destroy');
+            Route::get('/statistics', [\App\Http\Controllers\CouponController::class, 'statistics'])->name('coupons.statistics');
+        });
+    });

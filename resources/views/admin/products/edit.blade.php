@@ -53,7 +53,7 @@
                         @if($product->images)
                             <div class="mt-2 flex space-x-2 overflow-x-auto">
                                 @foreach($product->images as $image)
-                                    <img src="{{ asset('storage/' . $image) }}" alt="Product Image" class="h-20 rounded-md object-cover" />
+                                    <img src="{{ Storage::url($image) }}" alt="Product Image" class="h-20 rounded-md object-cover" />
                                 @endforeach
                             </div>
                         @endif
