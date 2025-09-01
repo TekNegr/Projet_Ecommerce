@@ -100,3 +100,12 @@ exit
 ```bash
 npm run dev
 ```
+
+## Connexions
+
+Afin de vous connecter à l'application vous pouvez utiliser les identifiants suivant :
+admin : admin@mail.com 
+vendeur : seller@mail.com
+client : customer@mail.com
+
+les mots de passe sont tous "password"
